@@ -26,7 +26,6 @@ class ToDoList extends Component {
 
   onSubmit = () => {
     let { task } = this.state;
-    // console.log("pRINTING task", this.state.task);
     if (task) {
       axios
         .post(
@@ -45,26 +44,27 @@ class ToDoList extends Component {
           this.setState({
             task: ""
           });
-          console.log("onSubmit:", res);
+          console.log("onSubmit:", res.statusText);
         });
     }
   };
 
   getTask = () => {
     axios.get(endpoint + "/api/task").then(res => {
-      console.log(res);
       let str = ""
       if (res.data) {
+        // remove unexpected string from data
         if (res.data.indexOf(`\nnull\n`) !== -1) {
           str = res.data.replace(`\nnull\n`, "");
         } else {
           str = res.data
         }
         let obj = JSON.parse(str);
+        console.log("No. of items:", obj.length);
         this.setState({
           items: obj.map((item) => {
+            // status color => Done:green ToDo:yellow
             let color = "yellow";
-
             if (item.status) {
               color = "green";
             }
@@ -76,24 +76,27 @@ class ToDoList extends Component {
                   </Card.Header>
 
                   <Card.Meta textAlign="right">
-                    <Icon
-                      name="check circle"
-                      color="green"
-                      onClick={() => this.updateTask(item._id)}
-                    />
-                    <span style={{ paddingRight: 10 }}>Done</span>
-                    <Icon
-                      name="undo"
-                      color="yellow"
-                      onClick={() => this.undoTask(item._id)}
-                    />
-                    <span style={{ paddingRight: 10 }}>Undo</span>
-                    <Icon
-                      name="delete"
-                      color="red"
-                      onClick={() => this.deleteTask(item._id)}
-                    />
-                    <span style={{ paddingRight: 10 }}>Delete</span>
+                    <span onClick={() => this.updateTask(item._id)}>
+                      <Icon
+                        name="check circle"
+                        color="green"
+                      />
+                      <span style={{ paddingRight: 10 }}>Done</span>
+                    </span>
+                    <span onClick={() => this.undoTask(item._id)}>
+                      <Icon
+                        name="undo"
+                        color="yellow"
+                      />
+                      <span style={{ paddingRight: 10 }}>Undo</span>
+                    </span>
+                    <span onClick={() => this.deleteTask(item._id)}>
+                      <Icon
+                        name="delete"
+                        color="red"
+                      />
+                      <span style={{ paddingRight: 10 }}>Delete</span>
+                    </span>
                   </Card.Meta>
                 </Card.Content>
               </Card>
@@ -116,7 +119,7 @@ class ToDoList extends Component {
         }
       })
       .then(res => {
-        console.log(res);
+        console.log("updateTask", res.statusText);
         this.getTask();
       });
   };
@@ -129,7 +132,7 @@ class ToDoList extends Component {
         }
       })
       .then(res => {
-        console.log(res);
+        console.log("undoTask", res.status);
         this.getTask();
       });
   };
@@ -142,7 +145,7 @@ class ToDoList extends Component {
         }
       })
       .then(res => {
-        console.log(res);
+        console.log("deleteTask", res.statusText);
         this.getTask();
       });
   };

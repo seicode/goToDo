@@ -1,4 +1,4 @@
-package middleware
+package service
 
 import (
 	"context"
@@ -27,9 +27,9 @@ func init() {
 	createDBInstance()
 }
 
+// load .env file
 func loadTheEnv() {
-	// load .env file
-	err := godotenv.Load(".env")
+	err := godotenv.Load("../.env")
 	if err != nil {
 		log.Fatalf("Error loading .env file")
 	}
@@ -71,7 +71,6 @@ func createDBInstance() {
 
 // GetAllTask get all the task route
 func GetAllTask(c echo.Context) error {
-	fmt.Println("¥GetAllTask")
 	log.Info("GetAllTask")
 	r := c.Request().Header
 	w := c.Response()
@@ -91,7 +90,7 @@ func CreateTask(c echo.Context) error {
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	var task models.ToDoList
 	_ = json.NewDecoder(r.Body).Decode(&task)
-	log.Printf("Create Task: %v Request Body: %v", task, r.Body)
+	log.Printf("Request Body: %v", r.Body)
 	insertOneTask(task)
 	return c.JSON(http.StatusOK, json.NewEncoder(w).Encode(task))
 }
@@ -118,7 +117,7 @@ func UndoTask(c echo.Context) error {
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
 	param := c.Param("id")
-	taskComplete(param)
+	undoTask(param)
 	return c.JSON(http.StatusOK, json.NewEncoder(w).Encode(param))
 }
 
@@ -131,7 +130,7 @@ func DeleteTask(c echo.Context) error {
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	// json.NewEncoder(w).Encode("Task not found")
 	param := c.Param("id")
-	taskComplete(param)
+	deleteOneTask(param)
 	return c.JSON(http.StatusOK, json.NewEncoder(w).Encode(param))
 }
 
@@ -160,7 +159,6 @@ func getAllTask() []primitive.M {
 		if e != nil {
 			log.Fatal(e)
 		}
-		// fmt.Println("cur..>", cur, "result", reflect.TypeOf(result), reflect.TypeOf(result["_id"]))
 		results = append(results, result)
 
 	}
@@ -186,7 +184,7 @@ func insertOneTask(task models.ToDoList) {
 
 // task complete method, update task's status to true
 func taskComplete(task string) {
-	fmt.Println(task)
+	log.Info(task)
 	id, _ := primitive.ObjectIDFromHex(task)
 	filter := bson.M{"_id": id}
 	update := bson.M{"$set": bson.M{"status": true}}
@@ -195,12 +193,12 @@ func taskComplete(task string) {
 		log.Fatal(err)
 	}
 
-	fmt.Println("modified count: ", result.ModifiedCount)
+	log.Info("modified count: ", result.ModifiedCount)
 }
 
 // task undo method, update task's status to false
 func undoTask(task string) {
-	fmt.Println(task)
+	log.Info(task)
 	id, _ := primitive.ObjectIDFromHex(task)
 	filter := bson.M{"_id": id}
 	update := bson.M{"$set": bson.M{"status": false}}
@@ -209,12 +207,12 @@ func undoTask(task string) {
 		log.Fatal(err)
 	}
 
-	fmt.Println("modified count: ", result.ModifiedCount)
+	log.Info("modified count: ", result.ModifiedCount)
 }
 
 // delete one task from the DB, delete by ID
 func deleteOneTask(task string) {
-	fmt.Println(task)
+	log.Info(task)
 	id, _ := primitive.ObjectIDFromHex(task)
 	filter := bson.M{"_id": id}
 	d, err := collection.DeleteOne(context.Background(), filter)
@@ -222,7 +220,7 @@ func deleteOneTask(task string) {
 		log.Fatal(err)
 	}
 
-	fmt.Println("Deleted Document", d.DeletedCount)
+	log.Info("Deleted Document", d.DeletedCount)
 }
 
 // delete all the tasks from the DB
@@ -232,6 +230,6 @@ func deleteAllTask() int64 {
 		log.Fatal(err)
 	}
 
-	fmt.Println("Deleted Document", d.DeletedCount)
+	log.Info("Deleted Document", d.DeletedCount)
 	return d.DeletedCount
 }
