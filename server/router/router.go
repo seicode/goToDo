@@ -15,22 +15,19 @@ func Router() *echo.Echo {
 	e.HideBanner = true
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"http://localhost:1323", "http://localhost:3000"},
-		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodPost, http.MethodDelete},
+		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAccessControlAllowOrigin},
 	}))
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format: logFormat(),
 		Output: os.Stdout,
 	}))
-	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello World!")
-	})
-
+	e.GET("/", s.GetAllTask)
 	e.GET("/api/task", s.GetAllTask)
 	e.POST("/api/task", s.CreateTask)
-	e.PUT("/api/task/{id}", s.TaskComplete)
-	e.PUT("/api/undoTask/{id}", s.UndoTask)
-	e.DELETE("/api/deleteTask/{id}", s.DeleteTask)
+	e.PUT("/api/task/:id", s.TaskComplete)
+	e.PUT("/api/undoTask/:id", s.UndoTask)
+	e.DELETE("/api/deleteTask/:id", s.DeleteTask)
 	e.DELETE("/api/deleteAllTask", s.DeleteAllTask)
 	e.Logger.Fatal(e.Start(":1323"))
 	return e
